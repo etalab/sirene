@@ -77,5 +77,5 @@ async def server(request, name, value):
     logger.info('🐿 Retrieving {0} results for the {1}/{2} couple'.format(
                 len(sirens), name, value))
     sirens = sirens[:limit]
-    logger.info('🍫 Returning {0} results in {1}'.format(limit, format))
+    logger.info('🍫 Returning {0} results in {1}'.format(len(sirens), format))
     return _format_response(sirens, format, column_names)

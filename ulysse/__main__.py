@@ -11,15 +11,14 @@ if __name__ == '__main__':
         help='number of lines you want to process (default=1000)')
     parser.add_argument(
         '--filename', dest='filename',
-        default='sources/sirc-266_266_13705_201606_L_P_20161010_121909418.csv',
         help='path of your source CSV file for loading data')
     parser.add_argument(
-        '--columns', dest='columns', type=list,
+        '--columns', dest='columns', nargs='+',
         default=DEFAULT_COLUMNS,
         help=('columns you want to work on, '
               'this is recommended to keep at least `SIREN`'))
     parser.add_argument(
-        '--excluded', dest='excluded', type=list,
+        '--excluded', dest='excluded', nargs='+',
         default=DEFAULT_EXCLUDED_COLUMNS,
         help='columns excluded from indexation (free text for instance)')
     parser.add_argument(
@@ -32,7 +31,7 @@ if __name__ == '__main__':
         indexed_columns = [
             column_name for column_name in args.columns
             if not any(column_name.endswith(suffix)
-                       for suffix in args.not_indexed)
+                       for suffix in args.excluded)
         ]
         load_stock(args.filename, nb_of_lines=args.lines, columns=args.columns,
                    indexed_columns=indexed_columns)
