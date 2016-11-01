@@ -14,7 +14,7 @@ Technically, the CSV is loaded within Redis and then served with Sanic. It
 should not be necessary to be a Python developer to use the project. Please
 please please report any issue you encounter to improve the project.
 
-Check [detailled use cases](#use-cases) for a better idea of what can be achieved
+Check [detailed use cases](#use-cases) for a better idea of what can be achieved
 and then follow the [installation instructions](#installation) if it finally
 fits your needs.
 
@@ -54,7 +54,7 @@ Retrieve the current repository, then either make a dedicated virtualenv
 or just type that command if you are not a Python developer:
 
 ```shell
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 In both cases, you have to run the script with Python 3+.
@@ -68,22 +68,134 @@ You will need a running Redis server too. The installation and launch
 depends on your OS. For instance for macOS:
 
 ```shell
-brew install redis
-redis-server
+$ brew install redis
+$ redis-server
 ```
 
 
 ## Use cases
 
+First of all, you can have access to the help of the module at any given time:
+
+```shell
+$ python -m ulysse --help
+```
+
 ### Limiting the huge Sirene CSV file
 
+Before starting, you need to define the number of lines you want to load within
+the local database. Default is 1000 to be able to try fast, the whole stock
+file is about 12 millions lines. It takes about 15 minutes to load 1 million
+lines with a dozen of keys.
 
-### Working on a given domain only
+Next, you choose which columns you want to work on, loading all columns is
+probably irrelevant for the scope of a hackathon. Focus on a given domain
+and iterate quickly. If you miss one column, it should not be too long to load
+a new database.
+
+Once you did that, it is time to call the script with these given parameters:
+
+```shell
+$ python -m ulysse load --filename path/to/sirc.csv --lines 20000 --columns SIREN NIC L1_NORMALISEE
+INFO:ulysse.database:👌 Connected to Redis
+INFO:ulysse.loaders:👉 Loading 20000 lines from path/to/sirc.csv
+INFO:ulysse.loaders:💧 Already 10000 lines loaded
+INFO:ulysse.loaders:💧 Already 20000 lines loaded
+INFO:ulysse.loaders:💦 Storing correspondences (last step!)
+INFO:ulysse.loaders:🌊 20000 lines loaded with success
+```
+
+The beautifully emoji-ed log will hopefully help you to understand what is
+happening. Do not forget to launch your Redis server first!
+
+
+### Playing with data (optional/advanced)
+
+At that point, you should have a loaded Redis database.
+
+If you are familiar with Python and/or Redis, you can start querying that
+subset. For instance:
+
+```shell
+$ python
+>>> from ulysse.database import db
+INFO:ulysse.database:👌 Connected to Redis
+>>> from ulysse.utils import _generate_score_key
+>>> score_key = _generate_score_key('NIC', '00056')
+>>> score = db.get(score_key)
+>>> sirens = db.zrangebyscore('NIC', score, score)
+>>> print(sirens)
+[b'005420021', b'006641823', b'007350200', b'025550120']
+>>> from ulysse.server import _redis_to_dict
+>>> from pprint import pprint
+>>> pprint([_redis_to_dict(siren, ['SIREN', 'NIC']) for siren in sirens])
+[{'NIC': '00056', 'SIREN': '005420021'},
+ {'NIC': '00056', 'SIREN': '006641823'},
+ {'NIC': '00056', 'SIREN': '007350200'},
+ {'NIC': '00056', 'SIREN': '025550120'}]
+```
+
+The low-level API gives you the more modular and customizable way to retrieve
+data but it can be a bit tedious to do that by hand. If you are totally lost,
+the next section will hopefully help you!
 
 
 ### Quick and dirty export in CSV or JSON
 
+You can serve your data through HTTP for an easier access.
 
+You have to launch the local server:
+
+```shell
+$ python -m ulysse serve --columns SIREN NIC L1_NORMALISEE
+INFO:ulysse.database:👌 Connected to Redis
+INFO:sanic.log:Goin' Fast @ http://0.0.0.0:8000
+```
+
+Now you will be able to issue HTTP requests from another command-line
+to retrieve data as CSV:
+
+```shell
+$ http :8000/NIC/00056 limit==2 format==csv columns==SIREN,NIC,L1_NORMALISEE
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 108
+Content-Type: text/plain; charset=utf-8
+Keep-Alive: timeout=60
+
+SIREN;NIC;L1_NORMALISEE
+005420021;00056;ETABLISSEMENTS LUCIEN BIQUEZ
+006641823;00056;MONSIEUR PHILIPPE PLOGE
+```
+
+And/or JSON:
+
+```shell
+http :8000/NIC/00056 limit==3 format==json columns==SIREN,L1_NORMALISEE
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 193
+Content-Type: application/json; charset=utf-8
+Keep-Alive: timeout=60
+
+[
+    {
+        "L1_NORMALISEE": "ETABLISSEMENTS LUCIEN BIQUEZ",
+        "SIREN": "005420021"
+    },
+    {
+        "L1_NORMALISEE": "MONSIEUR PHILIPPE PLOGE",
+        "SIREN": "006641823"
+    },
+    {
+        "L1_NORMALISEE": "ENTREPRISE MINETTO",
+        "SIREN": "007350200"
+    }
+]
+```
+
+You can play with GET parameters (`limit`, `format` and `columns`) to
+retrieve the pertinent data for your use-case.
 
 
 ## Contributing
@@ -137,7 +249,6 @@ See the [dedicated file](CHANGELOG.md).
 * load daily updates and provide a way to query that
 * or at least visualize it? https://github.com/ZoomerAnalytics/jsondiff
 * document default constants
-* document use cases
 * use file streaming for CSV output (and iterators for the server)
 
 
