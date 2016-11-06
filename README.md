@@ -85,7 +85,7 @@ $ python -m ulysse --help
 
 Before starting, you need to define the number of lines you want to load within
 the local database. Default is 1000 to be able to try fast, the whole stock
-file is about 12 millions lines. It takes about 15 minutes to load 1 million
+file is about 12 millions lines. It takes about 9 minutes to load 500000
 lines with a dozen of keys.
 
 Next, you choose which columns you want to work on, loading all columns is
@@ -93,10 +93,12 @@ probably irrelevant for the scope of a hackathon. Focus on a given domain
 and iterate quickly. If you miss one column, it should not be too long to load
 a new database.
 
-Once you did that, it is time to call the script with these given parameters:
+Once you did that, it is time to call the script with these given parameters
+(add `--columns SIREN NIC etc` if you do not want default ones which are
+`SIREN NIC L1_NORMALISEE TEFET DEFET DEPCOMEN APEN700 CATEGORIE DCREN DATEMAJ`):
 
 ```shell
-$ python -m ulysse load --filename path/to/sirc.csv --lines 20000 --columns SIREN NIC L1_NORMALISEE
+$ python -m ulysse load_stock --filename path/to/sirc.csv --lines 20000
 INFO:ulysse.database:👌 Connected to Redis
 INFO:ulysse.loaders:👉 Loading 20000 lines from path/to/sirc.csv
 INFO:ulysse.loaders:💧 Already 10000 lines loaded
@@ -120,19 +122,17 @@ subset. For instance:
 $ python
 >>> from ulysse.database import db
 INFO:ulysse.database:👌 Connected to Redis
->>> from ulysse.utils import _generate_score_key
->>> score_key = _generate_score_key('NIC', '00056')
->>> score = db.get(score_key)
->>> sirens = db.zrangebyscore('NIC', score, score)
->>> print(sirens)
-[b'005420021', b'006641823', b'007350200', b'025550120']
->>> from ulysse.server import _redis_to_dict
->>> from pprint import pprint
->>> pprint([_redis_to_dict(siren, ['SIREN', 'NIC']) for siren in sirens])
-[{'NIC': '00056', 'SIREN': '005420021'},
- {'NIC': '00056', 'SIREN': '006641823'},
- {'NIC': '00056', 'SIREN': '007350200'},
- {'NIC': '00056', 'SIREN': '025550120'}]
+>>> from ulysse.database import retrieve_sirets
+INFO:ulysse.database:👌 Connected to Redis
+>>> sirets = retrieve_sirets('NIC', '00056', limit=3)
+>>> print(sirets)
+['00542002100056', '00664182300056', '00735020000056']
+>>> from ulysse.database import retrieve_siret
+>>> retrieve_siret(sirets[0])
+{'20110719': '{"DATEMAJ": "20110719", "L1_NORMALISEE": "ETABLISSEMENTS LUCIEN BIQUEZ", "APEN700": "4669B", "DEPCOMEN": "80001", "SIREN": "005420021", "DCREN": "195401", "NIC": "00056", "DEFET": "2009", "TEFET": "11", "CATEGORIE": "PME"}'}
+>>> from ulysse.database import decode_siret
+>>> decode_siret(retrieve_siret(sirets[0]), ['SIREN', 'L1_NORMALISEE'])
+{'20110719': {'L1_NORMALISEE': 'ETABLISSEMENTS LUCIEN BIQUEZ', 'SIREN': '005420021'}}
 ```
 
 The low-level API gives you the more modular and customizable way to retrieve
@@ -174,28 +174,159 @@ And/or JSON:
 http :8000/NIC/00056 limit==3 format==json columns==SIREN,L1_NORMALISEE
 HTTP/1.1 200 OK
 Connection: keep-alive
-Content-Length: 193
+Content-Length: 232
 Content-Type: application/json; charset=utf-8
 Keep-Alive: timeout=60
 
 [
     {
-        "L1_NORMALISEE": "ETABLISSEMENTS LUCIEN BIQUEZ",
-        "SIREN": "005420021"
+        "20110719": {
+            "L1_NORMALISEE": "ETABLISSEMENTS LUCIEN BIQUEZ",
+            "SIREN": "005420021"
+        }
     },
     {
-        "L1_NORMALISEE": "MONSIEUR PHILIPPE PLOGE",
-        "SIREN": "006641823"
+        "20150902": {
+            "L1_NORMALISEE": "MONSIEUR PHILIPPE PLOGE",
+            "SIREN": "006641823"
+        }
     },
     {
-        "L1_NORMALISEE": "ENTREPRISE MINETTO",
-        "SIREN": "007350200"
+        "20120120": {
+            "L1_NORMALISEE": "ENTREPRISE MINETTO",
+            "SIREN": "007350200"
+        }
     }
 ]
 ```
 
 You can play with GET parameters (`limit`, `format` and `columns`) to
 retrieve the pertinent data for your use-case.
+
+
+### Dealing with history (optional)
+
+You can load updates from daily files generated (here again, you can pass
+a `--columns` parameter to customize extra columns loaded,
+default are `VMAJ DATEMAJ EVE DATEVE`:
+
+```shell
+$ python -m ulysse load_updates --folder path/to/MisesajourQuotidiennes/
+INFO:ulysse.database:👌 Connected to Redis
+INFO:ulysse.loaders:👉 Loading data from path/to/MisesajourQuotidiennes/sirc-..._124141890.csv
+INFO:ulysse.loaders:💧 Already 3000 lines loaded
+INFO:ulysse.loaders:💧 Already 6000 lines loaded
+INFO:ulysse.loaders:💧 Already 9000 lines loaded
+INFO:ulysse.loaders:💧 Already 12000 lines loaded
+INFO:ulysse.loaders:🐣 Creations: 4678 — 👥 Modifications: 2759 — 💀 Deletions: 3357 — 🤑 Commercial: 4 — 💸 Non commercial: 8
+[…]
+INFO:ulysse.loaders:🌊 475065 items loaded with success
+```
+
+The full load takes about 12 minutes to complete with default columns.
+Once it's achieved, you will have more information when you perform
+a query against the server (note the use of the `offset` parameter
+useful for pagination):
+
+```shell
+$ http :8000/NIC/00056 limit==2 offset==44 format==json columns==SIREN,L1_NORMALISEE,DATEMAJ,EVE
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 781
+Content-Type: application/json; charset=utf-8
+Keep-Alive: timeout=60
+
+[
+    {
+        "20140607": {
+            "DATEMAJ": "20140607",
+            "L1_NORMALISEE": "SERVICE INSTALLATION DEPANNAGE ELECTRO",
+            "SIREN": "070801659"
+        },
+        "20160725": {
+            "DATEMAJ": "20160725",
+            "EVE": "MS",
+            "L1_NORMALISEE": "SERVICE INSTALLATION DEPANNAGE ELECTRO",
+            "SIREN": "070801659"
+        },
+        "20160726": {
+            "DATEMAJ": "20160726",
+            "EVE": "MS",
+            "L1_NORMALISEE": "SERVICE INSTALLATION DEPANNAGE ELECTRO",
+            "SIREN": "070801659"
+        },
+        "20160817": {
+            "DATEMAJ": "20160817",
+            "EVE": "MS",
+            "L1_NORMALISEE": "SERVICE INSTALLATION DEPANNAGE ELECTRO",
+            "SIREN": "070801659"
+        },
+        "20160818": {
+            "DATEMAJ": "20160818",
+            "EVE": "MS",
+            "L1_NORMALISEE": "SID ELECTRONIQUE",
+            "SIREN": "070801659"
+        },
+        "20160826": {
+            "DATEMAJ": "20160826",
+            "EVE": "SS",
+            "L1_NORMALISEE": "SID ELECTRONIQUE",
+            "SIREN": "070801659"
+        }
+    },
+    {
+        "19981126": {
+            "DATEMAJ": "19981126",
+            "L1_NORMALISEE": "BETON CONTROLE COTE D AZUR",
+            "SIREN": "071503569"
+        }
+    }
+]
+```
+
+Here the company with `SIREN` "070801659" issued a `MS` (headquarter change)
+as of 2016-07-26 and 2016-08-17 (?!) and then a `SS` (headquarter close)
+as of 2016-08-26.
+
+Another example:
+
+```shell
+$ http :8000/SIREN/024049124 limit==25 format==csv columns==SIREN,NIC,L1_NORMALISEE,DATEMAJ,EVE   239ms
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 1035
+Content-Type: text/plain; charset=utf-8
+Keep-Alive: timeout=60
+
+SIREN;NIC;L1_NORMALISEE;DATEMAJ;EVE
+024049124;00027;DOUKA BE;20131125;
+024049124;00035;BOURBON DISTRIBUTION MAYOTTE;20131125;
+024049124;00043;ENTREPOT BAZAR;20131128;
+024049124;00050;SNIE;20120922;
+024049124;00068;BOURBON DISTRIBUTION MAYOTTE;20120922;
+024049124;00076;SNIE COMBANI;20131125;
+024049124;00084;DOUKA BE;20131125;
+024049124;00092;BOURBON DISTRIBUTION MAYOTTE;20131125;
+024049124;00100;BOURBON DISTRIBUTION MAYOTTE;20131125;
+024049124;00118;SNIE;20131104;
+024049124;00126;SNIE;20131125;
+024049124;00134;UTV;20131107;
+024049124;00142;JUMBO SCORE;20141028;
+024049124;00159;BOURBON DISTRIBUTION MAYOTTE;20150320;
+024049124;00167;DOUKA BE;20151009;
+024049124;00175;DOUKA BE;20151009;
+024049124;00183;DOUKA BE;20151106;
+024049124;00191;DOUKA BE;20160120;
+024049124;00209;DOUKA BE;20160216;
+024049124;00217;BOURBON DISTRIBUTION MAYOTTE;20160318;
+024049124;00225;BOURBON DISTRIBUTION MAYOTTE;20160318;
+024049124;00233;BOURBON DISTRIBUTION MAYOTTE;20160318;
+024049124;00241;DOUKA BE;20160701;CE
+024049124;00258;DOUKA BE;20160701;CE
+```
+
+You can see that as of 2016-07-01, the company with `NIC` "00258"
+created new establishments (`CE` for `EVE`nement column).
 
 
 ## Contributing
@@ -245,11 +376,10 @@ See the [dedicated file](CHANGELOG.md).
 
 ## TODO
 
-* provide a dump of a Redis database with some default columns?
-* load daily updates and provide a way to query that
-* or at least visualize it? https://github.com/ZoomerAnalytics/jsondiff
-* document default constants
-* use file streaming for CSV output (and iterators for the server)
+* provide a dump of a Redis database with default columns?
+* document the low-level API?
+* visualize [diffs](https://github.com/ZoomerAnalytics/jsondiff)?
+* use file streaming for CSV output (and iterators for the server - Falcon?)
 
 
 Readme initiated with [OpenSourceTemplate](https://github.com/davidbgk/open-source-template/).
