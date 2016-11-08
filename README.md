@@ -57,7 +57,8 @@ or just type that command if you are not a Python developer:
 $ pip install -r requirements.txt
 ```
 
-In both cases, you have to run the script with Python 3+.
+In both cases, you have to run the script with Python 3.5+.
+
 Note that you might need to [install pip](https://pip.pypa.io/en/stable/installing/) before.
 
 If you plan to make HTTP requests to retrieve filtered data, we strongly recommend

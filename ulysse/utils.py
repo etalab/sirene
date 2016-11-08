@@ -22,7 +22,7 @@ def extract_csv_filepaths(folder):
     for dirpath, dirnames, filenames in os.walk(folder):
         for filename in filenames:
             if filename.endswith('.csv'):
-                yield dirpath + filename
+                yield os.path.join(dirpath, filename)
 
 
 def iter_over_csv_file(csv_filepath):
