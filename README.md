@@ -74,6 +74,26 @@ $ redis-server
 ```
 
 
+## Data
+
+We assume that you have access to the source files for data:
+
+* `sirc-266_266_13705_201606_L_P_20161010_121909418.csv.bz2` is the unqiue stock file with 12 millions lines
+* `MisesajourQuotidiennes/sirc-266_266_13706_2016183_E_Q_20161020_131153997.csv` is one of the 42 daily update files with about 10000 lines each
+
+During the hackathon, you will also have access to 2 databases pre-loaded with
+that script:
+
+* `dump-500000+500000-all.rdb.zip` contains 500000 records from the stock (i.e. 1/24th) and 500000 update records with ALL columns loaded
+* `dump-3000000+500000-default.rdb.zip` containts 3000000 records from the stock (i.e. one quarter) and 500000 update records with DEFAULT columns loaded.
+
+See use-cases below to see if one of these databases suits your needs or
+if you have to load one by yourself. If you plan to use these databases,
+the easiest way is to rename the file to `dump.rdb` and then run the
+`redis-server` command from that place. Once it is done, use the `serve`
+command documented below.
+
+
 ## Use cases
 
 First of all, you can have access to the help of the module at any given time:
@@ -87,7 +107,7 @@ $ python -m ulysse --help
 Before starting, you need to define the number of lines you want to load within
 the local database. Default is 1000 to be able to try fast, the whole stock
 file is about 12 millions lines. It takes about 9 minutes to load 500000
-lines with a dozen of keys.
+lines with default keys and 1 hour for 3000000 record (one third of the total).
 
 Next, you choose which columns you want to work on, loading all columns is
 probably irrelevant for the scope of a hackathon. Focus on a given domain
@@ -353,7 +373,8 @@ INFO:ulysse.loaders:🌊 50000 lines loaded with success
 ```
 
 Be aware that it obviously takes way more time than just storing columns
-you want to work on. For instance, it takes about 7 minutes for 50000 lines!
+you want to work on. For instance, it takes about one hour and a half
+for 500000 lines.
 
 Even with the `--all` option activated, note that columns from the `--excluded`
 option will still be effective (default are
@@ -379,10 +400,10 @@ INFO:ulysse.loaders:🌊 475065 items loaded with success
 ```
 
 In that configuration, the load of all updates will take about 1 hour and a half.
-Plus, loading the Redis takes about 5Gb and it requires at least 10Gb to not swap
-on initial load of the data. The Redis `dump.rdb` is about 1.5Gb and takes
-3 minutes to load when you launch the server.
-
+Plus, loading the Redis takes about 8Gb and it requires at least 12Gb to not swap
+on initial load of the data. The Redis `dump.rdb` database is about 3.5Gb and
+takes 7 minutes to load when you launch the server with about 1 million records
+(500000 from stock + ~500000 from updates) containing all available columns.
 
 
 ### Display diffs for a given SIRET
@@ -744,11 +765,11 @@ See the [dedicated file](CHANGELOG.md).
 
 ## TODO
 
-* provide a dump of a Redis database with default columns?
 * document the low-level API?
+* use [pipelines from Redis](https://pypi.python.org/pypi/redis/#pipelines) to speed up loads
 * use file streaming for CSV output (and iterators for the server - Falcon?)
 * move from Redis to PostrgeSQL given the size of the whole database
-* move from Sanic to Falcon/Flask?
+* move from Sanic to Falcon/Flask for adoption/maturity?
 
 
 Readme initiated with [OpenSourceTemplate](https://github.com/davidbgk/open-source-template/).

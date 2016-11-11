@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--all', dest='all', action='store_true',
         help=('load all columns from the source file, '
-              'huge memory consomption though'))
+              'huge memory consumption though'))
     parser.add_argument(
         '--columns', dest='columns', nargs='+',
         default=DEFAULT_COLUMNS,
