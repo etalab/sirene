@@ -384,6 +384,319 @@ on initial load of the data. The Redis `dump.rdb` is about 1.5Gb and takes
 3 minutes to load when you launch the server.
 
 
+
+### Display diffs for a given SIRET
+
+An entry point of the API allows you to display differences within the
+lifetime of a given SIRET. Let's say you loaded the update files for all
+columns. If you retrive informations for a given SIREN you end up with
+two entries:
+
+```shell
+$ http :8000/SIREN/055801013
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 3827
+Content-Type: application/json; charset=utf-8
+Keep-Alive: timeout=60
+
+[
+    {
+        "20160700": {
+            "ACTISURF": "",
+            "ACTIVNAT": "NR",
+            "ADR_MAIL": "",
+            "AMINTREN": "201209",
+            "AMINTRET": "201209",
+            "APEN700": "1071C",
+            "APET700": "1071C",
+            "APRM": "",
+            "ARRONET": "3",
+            "AUXILT": "0",
+            "CATEGORIE": "PME",
+            "CEDEX": "",
+            "CIVILITE": "",
+            "CODPOS": "13001",
+            "COMET": "201",
+            "CTONET": "12",
+            "DAPEN": "2008",
+            "DAPET": "2008",
+            "DATEESS": "",
+            "DATEMAJ": "20160700",
+            "DCREN": "195501",
+            "DCRET": "195501",
+            "DDEBACT": "",
+            "DEFEN": "2014",
+            "DEFET": "2014",
+            "DEPCOMEN": "13201",
+            "DEPET": "13",
+            "DIFFCOM": "O",
+            "DU": "00",
+            "EFENCENT": "10",
+            "EFETCENT": "10",
+            "ENSEIGNE": "",
+            "EPCI": "241300391",
+            "ESAANN": "",
+            "ESAAPEN": "",
+            "ESASEC1N": "",
+            "ESASEC2N": "",
+            "ESASEC3N": "",
+            "ESASEC4N": "",
+            "ESS": "",
+            "INDREP": "",
+            "IND_PUBLIPO": "1",
+            "L1_DECLAREE": "BOULANGERIE-PATISSERIE NOAILLES",
+            "L1_NORMALISEE": "BOULANGERIE PATISSERIE NOAILLES",
+            "L2_DECLAREE": "",
+            "L2_NORMALISEE": "",
+            "L3_DECLAREE": "",
+            "L3_NORMALISEE": "",
+            "L4_DECLAREE": "20 RUE DES FEUILLANTS",
+            "L4_NORMALISEE": "20 RUE DES FEUILLANTS",
+            "L5_DECLAREE": "",
+            "L5_NORMALISEE": "",
+            "L6_DECLAREE": "13001 MARSEILLE 1",
+            "L6_NORMALISEE": "13001 MARSEILLE",
+            "L7_DECLAREE": "",
+            "L7_NORMALISEE": "FRANCE",
+            "LIBAPEN": "Boulangerie et boulangerie-pâtisserie",
+            "LIBAPET": "Boulangerie et boulangerie-pâtisserie",
+            "LIBCOM": "MARSEILLE 1",
+            "LIBNATETAB": "",
+            "LIBNJ": "Société à responsabilité limitée (sans autre indication)",
+            "LIBREG": "Provence-Alpes-Côte d'Azur",
+            "LIBTEFEN": "10 à 19 salariés",
+            "LIBTEFET": "10 à 19 salariés",
+            "LIBVOIE": "DES FEUILLANTS",
+            "LIEUACT": "NR",
+            "MODEN": "S",
+            "MODET": "S",
+            "MONOACT": "1",
+            "NATETAB": "",
+            "NIC": "00016",
+            "NICSIEGE": "00016",
+            "NJ": "5499",
+            "NOM": "",
+            "NOMEN_LONG": "BOULANGERIE-PATISSERIE NOAILLES",
+            "NUMVOIE": "20",
+            "ORIGINE": "3",
+            "PRENOM": "",
+            "PRODEN": "O",
+            "PRODET": "O",
+            "PRODPART": "",
+            "RNA": "",
+            "RPEN": "93",
+            "RPET": "93",
+            "SAISONAT": "P",
+            "SIEGE": "1",
+            "SIGLE": "",
+            "SIREN": "055801013",
+            "TCA": "",
+            "TCD": "73",
+            "TEFEN": "11",
+            "TEFET": "11",
+            "TU": "7",
+            "TYPVOIE": "RUE",
+            "UU": "59",
+            "VMAJ": "I",
+            "VMAJ1": "",
+            "VMAJ2": "",
+            "VMAJ3": "",
+            "ZEMET": "9310"
+        },
+        "20160701": {
+            "ACTISURF": "",
+            "ACTIVNAT": "NR",
+            "ADR_MAIL": "",
+            "AMINTREN": "201209",
+            "AMINTRET": "201209",
+            "APEN700": "6820B",
+            "APET700": "6820B",
+            "APRM": "",
+            "ARRONET": "3",
+            "AUXILT": "0",
+            "CATEGORIE": "PME",
+            "CEDEX": "",
+            "CIVILITE": "",
+            "CODPOS": "13001",
+            "COMET": "201",
+            "CTONET": "12",
+            "DAPEN": "2015",
+            "DAPET": "2015",
+            "DATEESS": "",
+            "DATEMAJ": "20160701",
+            "DCREN": "195501",
+            "DCRET": "195501",
+            "DDEBACT": "",
+            "DEFEN": "2014",
+            "DEFET": "2014",
+            "DEPCOMEN": "13201",
+            "DEPET": "13",
+            "DIFFCOM": "O",
+            "DU": "00",
+            "EFENCENT": "10",
+            "EFETCENT": "10",
+            "ENSEIGNE": "",
+            "EPCI": "241300391",
+            "ESAANN": "",
+            "ESAAPEN": "",
+            "ESASEC1N": "",
+            "ESASEC2N": "",
+            "ESASEC3N": "",
+            "ESASEC4N": "",
+            "ESS": "",
+            "INDREP": "",
+            "IND_PUBLIPO": "1",
+            "L1_DECLAREE": "BOULANGERIE-PATISSERIE NOAILLES",
+            "L1_NORMALISEE": "BOULANGERIE-PATISSERIE NOAILLES",
+            "L2_DECLAREE": "",
+            "L2_NORMALISEE": "",
+            "L3_DECLAREE": "",
+            "L3_NORMALISEE": "",
+            "L4_DECLAREE": "20 RUE DES FEUILLANTS",
+            "L4_NORMALISEE": "20 RUE DES FEUILLANTS",
+            "L5_DECLAREE": "",
+            "L5_NORMALISEE": "",
+            "L6_DECLAREE": "13001 MARSEILLE 1",
+            "L6_NORMALISEE": "13001 MARSEILLE 1",
+            "L7_DECLAREE": "",
+            "L7_NORMALISEE": "",
+            "LIBAPEN": "Location de terrains et d'autres biens immobiliers",
+            "LIBAPET": "Location de terrains et d'autres biens immobiliers",
+            "LIBCOM": "MARSEILLE 1",
+            "LIBNATETAB": "",
+            "LIBNJ": "Société à responsabilité limitée (sans autre indication)",
+            "LIBREG": "Provence-Alpes-Côte d'Azur",
+            "LIBTEFEN": "10 à 19 salariés",
+            "LIBTEFET": "10 à 19 salariés",
+            "LIBVOIE": "DES FEUILLANTS",
+            "LIEUACT": "NR",
+            "MODEN": "S",
+            "MODET": "S",
+            "MONOACT": "1",
+            "NATETAB": "",
+            "NIC": "00016",
+            "NICSIEGE": "00016",
+            "NJ": "5499",
+            "NOM": "",
+            "NOMEN_LONG": "BOULANGERIE-PATISSERIE NOAILLES",
+            "NUMVOIE": "20",
+            "ORIGINE": "3",
+            "PRENOM": "",
+            "PRODEN": "O",
+            "PRODET": "O",
+            "PRODPART": " ",
+            "RNA": "",
+            "RPEN": "93",
+            "RPET": "93",
+            "SAISONAT": "P",
+            "SIEGE": "1",
+            "SIGLE": "",
+            "SIREN": "055801013",
+            "TCA": "",
+            "TCD": "73",
+            "TEFEN": "11",
+            "TEFET": "11",
+            "TU": "7",
+            "TYPVOIE": "RUE",
+            "UU": "59",
+            "VMAJ": "F",
+            "VMAJ1": "0",
+            "VMAJ2": "1",
+            "VMAJ3": "1",
+            "ZEMET": "9310"
+        }
+    }
+]
+```
+
+With that view it's hard to see which keys have changed, that's why we propose
+a diff of that view too. The `SIRET` is the concatenation of `SIREN` and `NIC`
+keys, `start-date` and `end-date` are coming from keys of the previous result:
+
+```shell
+$ http :8000/diff/05580101300016 start-date==20160700 end-date==20160701
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 619
+Content-Type: application/json; charset=utf-8
+Keep-Alive: timeout=60
+
+{
+    "APEN700": [
+        "1071C",
+        "6820B"
+    ],
+    "APET700": [
+        "1071C",
+        "6820B"
+    ],
+    "DAPEN": [
+        "2008",
+        "2015"
+    ],
+    "DAPET": [
+        "2008",
+        "2015"
+    ],
+    "DATEMAJ": [
+        "20160700",
+        "20160701"
+    ],
+    "L1_NORMALISEE": [
+        "BOULANGERIE PATISSERIE NOAILLES",
+        "BOULANGERIE-PATISSERIE NOAILLES"
+    ],
+    "L6_NORMALISEE": [
+        "13001 MARSEILLE",
+        "13001 MARSEILLE 1"
+    ],
+    "L7_NORMALISEE": [
+        "FRANCE",
+        ""
+    ],
+    "LIBAPEN": [
+        "Boulangerie et boulangerie-pâtisserie",
+        "Location de terrains et d'autres biens immobiliers"
+    ],
+    "LIBAPET": [
+        "Boulangerie et boulangerie-pâtisserie",
+        "Location de terrains et d'autres biens immobiliers"
+    ],
+    "PRODPART": [
+        "",
+        " "
+    ],
+    "VMAJ": [
+        "I",
+        "F"
+    ],
+    "VMAJ1": [
+        "",
+        "0"
+    ],
+    "VMAJ2": [
+        "",
+        "1"
+    ],
+    "VMAJ3": [
+        "",
+        "1"
+    ]
+}
+```
+
+Here you have a better view of what changed between these two dates
+according to the update files provided.
+
+
+### What's next?
+
+If your use case is not covered, please please add an issue about that.
+Your needs will drive our future developments on the subject so your
+feedback is increadibly valuable to us! 👍
+
+
 ## Contributing
 
 We’re really happy to accept contributions from the community, that’s the main reason why we open-sourced it! There are many ways to contribute, even if you’re not a technical person.
@@ -433,7 +746,6 @@ See the [dedicated file](CHANGELOG.md).
 
 * provide a dump of a Redis database with default columns?
 * document the low-level API?
-* visualize [diffs](https://github.com/ZoomerAnalytics/jsondiff)?
 * use file streaming for CSV output (and iterators for the server - Falcon?)
 * move from Redis to PostrgeSQL given the size of the whole database
 * move from Sanic to Falcon/Flask?

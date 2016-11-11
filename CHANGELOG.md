@@ -1,8 +1,13 @@
 # Changelog
 
+## 2.2.0 — 2016-11-11 — 🛍 Display diffs
+
+* Serve the differences between two states for a given SIRET
+
+
 ## 2.1.0 — 2016-11-11 — ♨️ Load all
 
-* Ability to load every columns of the source files.
+* Ability to load every columns of the source files
 
 
 ## 2.0.0 — 2016-11-05 — 🗄 History

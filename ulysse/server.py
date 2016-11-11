@@ -1,5 +1,6 @@
 import logging
 
+from jsondiff import diff
 from sanic import Sanic
 from sanic.response import json, text
 from sanic.exceptions import ServerError
@@ -35,9 +36,25 @@ def format_response(rows, format, column_names):
 app = Sanic(__name__)
 
 
+@app.route('/diff/<siret>')
+async def diff_view(request, siret):
+    """Retrieve the diff of data for a given `siret`."""
+    start_date = request.args.get('start-date')
+    end_date = request.args.get('end-date')
+    logger.info('🙇 Requesting diff for {0} from {1} to {2}'.format(
+                siret, start_date, end_date))
+    data = decode_siret(retrieve_siret(siret), app.config.columns)
+    try:
+        result = diff(data[start_date], data[end_date], syntax='symmetric')
+    except KeyError:
+        msg = '😢 Invalid dates {0}/{1}'.format(start_date, end_date)
+        raise ServerError(msg)
+    return json(result)
+
+
 @app.route('/<name>/<value>')
-async def server(request, name, value):
-    """Quick and dirty API. Async for fun."""
+async def info_view(request, name, value):
+    """Retrieve JSON or CSV encoded items give the name/value filter."""
     limit = int(request.args.get('limit', 3))
     offset = int(request.args.get('offset', 0))
     format = request.args.get('format', 'json')

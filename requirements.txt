@@ -1,3 +1,4 @@
 httpie==0.9.6
+jsondiff==1.0.0
 redis==2.10.5
 Sanic==0.1.4
