@@ -104,12 +104,13 @@ INFO:ulysse.database:👌 Connected to Redis
 INFO:ulysse.loaders:👉 Loading 20000 lines from path/to/sirc.csv
 INFO:ulysse.loaders:💧 Already 10000 lines loaded
 INFO:ulysse.loaders:💧 Already 20000 lines loaded
-INFO:ulysse.loaders:💦 Storing correspondences (last step!)
 INFO:ulysse.loaders:🌊 20000 lines loaded with success
 ```
 
 The beautifully emoji-ed log will hopefully help you to understand what is
 happening. Do not forget to launch your Redis server first!
+
+Note: there is a way to load all columns at once (see section below).
 
 
 ### Playing with data (optional/advanced)
@@ -330,6 +331,59 @@ You can see that as of 2016-07-01, the company with `NIC` "00258"
 created new establishments (`CE` for `EVE`nement column).
 
 
+### Load all columns from source files
+
+Warning: this way to use the lib is only recommended if you have a lot of RAM
+given that Redis stores everything into memory. 16Gb+ is recommended otherwise
+your hard drive will start to swap and performances will drop significantly.
+
+To load all columns, use the `--all` option when you launch the `load_*`
+commands:
+
+```shell
+$ python -m ulysse load_stock --filename path/to/sirc.csv --lines 50000 --all
+INFO:ulysse.database:👌 Connected to Redis
+INFO:ulysse.loaders:👉 Loading 50000 lines from path/to/sirc.csv
+INFO:ulysse.loaders:💧 Already 10000 lines loaded
+INFO:ulysse.loaders:💧 Already 20000 lines loaded
+INFO:ulysse.loaders:💧 Already 30000 lines loaded
+INFO:ulysse.loaders:💧 Already 40000 lines loaded
+INFO:ulysse.loaders:💧 Already 50000 lines loaded
+INFO:ulysse.loaders:🌊 50000 lines loaded with success
+```
+
+Be aware that it obviously takes way more time than just storing columns
+you want to work on. For instance, it takes about 7 minutes for 50000 lines!
+
+Even with the `--all` option activated, note that columns from the `--excluded`
+option will still be effective (default are
+`NORMALISEE DECLAREE ENSEIGNE LIBNATETAB LIBAPET LIBTEFET NOMEN_LONG LIBNJ LIBAPEN LIBTEFEN`)
+so columns with these suffixes will not be indexed. Modify that option too if
+you want to index these plaintext columns.
+
+That option is also effective to load updates:
+
+```shell
+$ python -m ulysse load_updates --folder path/to/MisesajourQuotidiennes/ --all
+INFO:ulysse.database:👌 Connected to Redis
+INFO:ulysse.loaders:👉 Loading data from path/to/MisesajourQuotidiennes/sirc-266_266_13706_2016183_E_Q_20161020_131153997.csv
+INFO:ulysse.loaders:💧 Already 3000 lines loaded
+INFO:ulysse.loaders:💧 Already 6000 lines loaded
+INFO:ulysse.loaders:💧 Already 9000 lines loaded
+INFO:ulysse.loaders:💧 Already 12000 lines loaded
+INFO:ulysse.loaders:🐣 Creations: 4678 — 👥 Modifications: 2759 — 💀 Deletions: 3357 — 🤑 Commercial: 4 — 💸 Non commercial: 8
+INFO:ulysse.loaders:👉 Loading data from path/to/MisesajourQuotidiennes/sirc-266_266_13706_2016186_E_Q_20161020_131100370.csv
+INFO:ulysse.loaders:💧 Already 3000 lines loaded
+[…]
+INFO:ulysse.loaders:🌊 475065 items loaded with success
+```
+
+In that configuration, the load of all updates will take about 1 hour and a half.
+Plus, loading the Redis takes about 5Gb and it requires at least 10Gb to not swap
+on initial load of the data. The Redis `dump.rdb` is about 1.5Gb and takes
+3 minutes to load when you launch the server.
+
+
 ## Contributing
 
 We’re really happy to accept contributions from the community, that’s the main reason why we open-sourced it! There are many ways to contribute, even if you’re not a technical person.
@@ -381,6 +435,8 @@ See the [dedicated file](CHANGELOG.md).
 * document the low-level API?
 * visualize [diffs](https://github.com/ZoomerAnalytics/jsondiff)?
 * use file streaming for CSV output (and iterators for the server - Falcon?)
+* move from Redis to PostrgeSQL given the size of the whole database
+* move from Sanic to Falcon/Flask?
 
 
 Readme initiated with [OpenSourceTemplate](https://github.com/davidbgk/open-source-template/).

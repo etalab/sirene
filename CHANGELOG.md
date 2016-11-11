@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0 — 2016-11-11 — ♨️ Load all
+
+* Ability to load every columns of the source files.
+
+
 ## 2.0.0 — 2016-11-05 — 🗄 History
 
 * Ability to load incremental updates
