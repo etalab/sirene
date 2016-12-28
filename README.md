@@ -78,7 +78,7 @@ $ redis-server
 
 We assume that you have access to the source files for data:
 
-* `sirc-266_266_13705_201606_L_P_20161010_121909418.csv.bz2` is the unqiue stock file with 12 millions lines
+* `sirc-266_266_13705_201606_L_P_20161010_121909418.csv.bz2` is the unique stock file with 12 millions lines
 * `MisesajourQuotidiennes/sirc-266_266_13706_2016183_E_Q_20161020_131153997.csv` is one of the 42 daily update files with about 10000 lines each
 
 During the hackathon, you will also have access to 2 databases pre-loaded with
@@ -716,6 +716,28 @@ according to the update files provided.
 If your use case is not covered, please please add an issue about that.
 Your needs will drive our future developments on the subject so your
 feedback is increadibly valuable to us! 👍
+
+
+## Tools
+
+### Flux2Stock
+
+The aim of that script (available at the root of the directory) is to
+create a new stock file from a previous stock file and incremental daily
+files since then.
+
+You can use it that way:
+
+```shell
+$ python flux2stock.py stock-t.zip stock-t+2.csv flux-t+1.zip flux-t+2.zip
+```
+
+Here `stock-t.zip` is the initial stock, `stock-t+2.csv` is the name of
+the newly generated stock and `flux-t+1.zip flux-t+2.zip [...]` are
+daily updates since the initial stock creation.
+
+The generation of a new stock takes aproximatively 15 minutes on a
+recent computer. The RAM consumption should stay low.
 
 
 ## Contributing

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0 — 2016-12-29 — 👪 Flux2stock script
+
+* This script converts a stock + flux into a new updated stock.
+
+
 ## 2.2.0 — 2016-11-11 — 🛍 Display diffs
 
 * Serve the differences between two states for a given SIRET
