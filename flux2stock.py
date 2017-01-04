@@ -40,7 +40,8 @@ def filter_stock(stock_in, modifications):
     for i, row, fieldnames in _parse_zip_csv_file(stock_in):
         entry = modifications.get(row['SIREN'] + row['NIC'], row)
         is_deleted = 'VMAJ' in entry and entry['VMAJ'] == 'E'
-        if not is_deleted:
+        is_removed = 'VMAJ' in entry and entry['VMAJ'] == 'O'
+        if not is_deleted and not is_removed:
             yield i, entry, fieldnames
 
 
@@ -60,12 +61,14 @@ def write_stock(stock_out, filtered_stock, modifications):
         writer.writeheader()
         # Because we already iterate once to retrieve fieldnames.
         writer.writerow(first_row)
+        # Then write the updated stock.
         for i, row, _ in filtered_stock:
             writer.writerow(row)
-        # Finally, append creations.
+        # Finally, append creations and insertions.
         for siret, row in modifications.items():
             is_created = row['VMAJ'] == 'C'
-            if is_created:
+            is_inserted = row['VMAJ'] == 'D'
+            if is_created or is_inserted:
                 writer.writerow(row)
 
 
