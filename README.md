@@ -720,6 +720,10 @@ feedback is increadibly valuable to us! 👍
 
 ## Tools
 
+The following tools do not require any installation step,
+a classic Python 3 setup should be enough to launch the scripts.
+
+
 ### Flux2Stock
 
 The aim of that script (available at the root of the directory) is to
