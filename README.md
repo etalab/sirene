@@ -740,6 +740,35 @@ The generation of a new stock takes aproximatively 15 minutes on a
 recent computer. The RAM consumption should stay low.
 
 
+### Stock2Reduce
+
+The aim of that script (available at the root of the directory) is to
+create a new filtered stock file based on the name of a column and its
+value.
+
+You can use it that way:
+
+```shell
+$ python stock2reduce.py stock.zip stock-paca.csv RPET=93
+```
+
+Here `stock.zip` is the initial stock, `stock-paca.csv` is the name of
+the newly generated stock, `RPET` is the name of the column and `93`
+is the value matching of that column that you want to reduce on.
+
+The generation of a new stock takes aproximatively 7 minutes on a
+recent computer. The RAM consumption should stay low.
+
+Note that you can combine many filters at once:
+
+```shell
+$ python stock2reduce.py stock.zip stock-arles.csv DEPET=13 COMET=004
+```
+
+Here we match both the county code and the town one to create a valid
+and unique INSEE code and retrieve the stock related to Arles only.
+
+
 ## Contributing
 
 We’re really happy to accept contributions from the community, that’s the main reason why we open-sourced it! There are many ways to contribute, even if you’re not a technical person.

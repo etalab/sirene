@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.0 — 2017-01-13 — 💞 Stock2Reduce script
+
+* This script reduce a stock into matching conditions entries.
+
+
 ## 2.3.2 — 2017-01-12 — 💪 Better parsing of zip files
 
 * The prior expectation was that the ziped file contains a csv file of the same name.
@@ -10,7 +15,7 @@
 * Some people explicitly want to be inserted/removed from the SIRENE file.
 
 
-## 2.3.0 — 2016-12-29 — 👪 Flux2stock script
+## 2.3.0 — 2016-12-29 — 👪 Flux2Stock script
 
 * This script converts a stock + flux into a new updated stock.
 

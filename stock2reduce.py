@@ -1,5 +1,5 @@
 """
-This script converts a stock + flux into a new updated stock.
+This script reduce a stock into matching column name/value entries.
 
 Before hacking, please benchmark the current script with the real stock.
 You should keep the duration and the RAM consumption as low as possible.
@@ -26,29 +26,16 @@ def _parse_zip_csv_file(filename):
                     yield i, row, reader.fieldnames
 
 
-def parse_fluxs(sources):
-    """For each line from sources, create a dict with SIRET as key."""
-    return {
-        # SIREN + NIC = SIRET.
-        row['SIREN'] + row['NIC']: row
-        for source in sources
-        for i, row, _ in _parse_zip_csv_file(source)
-    }
-
-
-def filter_stock(stock_in, modifications):
-    """Return modified entries and not deleted ones."""
+def filter_stock(stock_in, conditions):
+    """Return only matching conditions entries."""
     for i, row, fieldnames in _parse_zip_csv_file(stock_in):
-        entry = modifications.get(row['SIREN'] + row['NIC'], row)
-        is_deleted = 'VMAJ' in entry and entry['VMAJ'] == 'E'
-        is_removed = 'VMAJ' in entry and entry['VMAJ'] == 'O'
-        if not is_deleted and not is_removed:
-            yield i, entry, fieldnames
+        if all(row[column] == value for column, value in conditions):
+            yield i, row, fieldnames
 
 
-def write_stock(stock_out, filtered_stock, modifications):
+def write_stock(stock_out, filtered_stock):
     """
-    Generate the new stock file with modified and created entries.
+    Generate the new stock file with filtered entries.
 
     We mimick the initial stock with encoding, quotes and delimiters.
     """
@@ -65,24 +52,17 @@ def write_stock(stock_out, filtered_stock, modifications):
         # Then write the updated stock.
         for i, row, _ in filtered_stock:
             writer.writerow(row)
-        # Finally, append creations and insertions.
-        for siret, row in modifications.items():
-            is_created = row['VMAJ'] == 'C'
-            is_inserted = row['VMAJ'] == 'D'
-            if is_created or is_inserted:
-                writer.writerow(row)
 
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        BASE_USAGE = 'python flux2stock.py stock-t.zip '
+        BASE_USAGE = 'python stock2reduce.py stock.zip '
         print('Usages:')
-        print(BASE_USAGE + 'stock-t+1.csv flux-t+1.zip')
-        print(BASE_USAGE + 'stock-t+2.csv flux-t+1.zip flux-t+2.zip')
+        print(BASE_USAGE + 'stock-paca.csv RPET=93')
+        print(BASE_USAGE + 'stock-arles.csv DEPET=13 COMET=004')
         sys.exit()
     stock_in = sys.argv[1]
     stock_out = sys.argv[2]
-    fluxs_zip = sys.argv[3:]
-    modifications = parse_fluxs(fluxs_zip)
-    filtered_stock = filter_stock(stock_in, modifications)
-    write_stock(stock_out, filtered_stock, modifications)
+    conditions = [condition.split('=') for condition in sys.argv[3:]]
+    filtered_stock = filter_stock(stock_in, conditions)
+    write_stock(stock_out, filtered_stock)
