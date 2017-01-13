@@ -7,22 +7,23 @@ You should keep the duration and the RAM consumption as low as possible.
 
 import csv
 import io
-import os
 import sys
 from zipfile import ZipFile
 
 
 def _parse_zip_csv_file(filename):
     """Yield each row from a ziped CSV file coming from INSEE."""
-    base_name, ext = os.path.splitext(os.path.basename(filename))
     with ZipFile(filename) as zip_file:
-        with zip_file.open(base_name + '.csv') as csv_file:
-            csvio = io.TextIOWrapper(csv_file, encoding='cp1252')
-            reader = csv.DictReader(csvio, delimiter=';')
-            for i, row in enumerate(reader):
-                # Not proud to pass fieldnames to each iteration.
-                # Better than a global var?
-                yield i, row, reader.fieldnames
+        for zip_info in zip_file.infolist():
+            if not zip_info.filename.endswith('.csv'):
+                continue
+            with zip_file.open(zip_info.filename) as csv_file:
+                csvio = io.TextIOWrapper(csv_file, encoding='cp1252')
+                reader = csv.DictReader(csvio, delimiter=';')
+                for i, row in enumerate(reader):
+                    # Not proud to pass fieldnames to each iteration.
+                    # Better than a global var?
+                    yield i, row, reader.fieldnames
 
 
 def parse_fluxs(sources):

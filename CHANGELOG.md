@@ -1,8 +1,13 @@
 # Changelog
 
+## 2.3.2 — 2017-01-12 — 💪 Better parsing of zip files
+
+* The prior expectation was that the ziped file contains a csv file of the same name.
+
+
 ## 2.3.1 — 2017-01-04 — 👻 Deal with manual inserts/removals in flux2stock
 
-* Some people explictely want to be inserted/removed from the SIRENE file.
+* Some people explicitly want to be inserted/removed from the SIRENE file.
 
 
 ## 2.3.0 — 2016-12-29 — 👪 Flux2stock script
